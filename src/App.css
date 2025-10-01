@@ -411,6 +411,10 @@
   min-height: auto;
   width: 100%;
   box-sizing: border-box;
+  /* Ensure consistent rendering for PDF generation */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
 }
 
 /* Markdown body overrides */
@@ -430,10 +434,21 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  page-break-after: avoid;
-  break-after: avoid-page;
-  page-break-inside: avoid;
-  break-inside: avoid;
+  page-break-after: avoid !important;
+  break-after: avoid-page !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  margin-bottom: 12px;
+}
+
+.markdown-body h1 + *,
+.markdown-body h2 + *,
+.markdown-body h3 + *,
+.markdown-body h4 + *,
+.markdown-body h5 + *,
+.markdown-body h6 + * {
+  page-break-before: avoid !important;
+  break-before: avoid !important;
 }
 
 .markdown-body p,
@@ -447,15 +462,64 @@
 .markdown-body pre,
 .markdown-body blockquote,
 .markdown-body table {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-before: auto;
+  page-break-after: auto;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.markdown-body pre code {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  display: block;
+}
+
+.markdown-body img {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-after: auto;
+  break-after: auto;
+}
+
+.markdown-body ul,
+.markdown-body ol {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-.markdown-body img {
+.markdown-body li {
   page-break-inside: avoid;
   break-inside: avoid;
-  page-break-after: auto;
-  break-after: auto;
+}
+
+/* Ensure code blocks stay together */
+.markdown-body .hljs {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Keep content together after headings */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  page-break-after: avoid !important;
+  break-after: avoid-page !important;
+}
+
+/* Add some spacing to help with page breaks */
+.markdown-body > * {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body > *:last-child {
+  margin-bottom: 0 !important;
 }
 
 .markdown-body h1,
@@ -483,6 +547,9 @@
   background-color: #f6f8fa;
   border-radius: 6px;
   padding: 16px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
 }
 
 .markdown-body code {
@@ -491,6 +558,9 @@
   border-radius: 6px;
   font-size: 85%;
   color: #24292e;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
 }
 
 .markdown-body pre code {
@@ -523,6 +593,9 @@
   font-weight: 600;
   padding: 6px 13px;
   border: 1px solid #d0d7de;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
 }
 
 .markdown-body table td {

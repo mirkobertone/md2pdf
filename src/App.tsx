@@ -143,23 +143,31 @@ function App() {
 
     setIsGenerating(true);
     try {
-      // Configure html2pdf with optimal settings for page breaks
+      // Clone the preview element to avoid modifying the original
+      const element = previewRef.current;
+
+      // Get the actual rendered width of the preview element
+      const previewWidth = element.offsetWidth;
+
+      // Configure html2pdf with optimal settings for faithful rendering
       const opt = {
         margin: [15, 15, 15, 15] as [number, number, number, number], // [top, left, bottom, right] in mm
         filename: "markdown-to-pdf.pdf",
-        image: { type: "jpeg" as const, quality: 0.98 },
+        image: { type: "png" as const, quality: 1 }, // PNG instead of JPEG for better color preservation
         html2canvas: {
-          scale: 2,
+          scale: 1, // Scale 1 to match exactly what's displayed (this was correct!)
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
           letterRendering: true,
+          allowTaint: false,
+          removeContainer: true,
         },
         jsPDF: {
-          unit: "mm" as const,
-          format: "a4" as const,
+          unit: "px" as const,
+          format: [previewWidth + 96, 1400] as [number, number],
           orientation: "portrait" as const,
-          compress: true,
+          compress: false,
         },
         pagebreak: {
           mode: ["avoid-all", "css", "legacy"],
@@ -173,15 +181,22 @@ function App() {
             "h5",
             "h6",
             "pre",
+            "code",
             "blockquote",
             "table",
             "tr",
+            "td",
+            "th",
             "img",
+            "ul",
+            "ol",
+            "li",
+            ".hljs",
           ],
         },
       };
 
-      await html2pdf().set(opt).from(previewRef.current).save();
+      await html2pdf().set(opt).from(element).save();
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
