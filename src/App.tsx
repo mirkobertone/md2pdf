@@ -149,25 +149,33 @@ function App() {
       // Get the actual rendered width of the preview element
       const previewWidth = element.offsetWidth;
 
-      // Configure html2pdf with optimal settings for faithful rendering
+      // Configure html2pdf with optimal settings for high-quality rendering
       const opt = {
         margin: [15, 15, 15, 15] as [number, number, number, number], // [top, left, bottom, right] in mm
         filename: "markdown-to-pdf.pdf",
-        image: { type: "png" as const, quality: 1 }, // PNG instead of JPEG for better color preservation
+        image: { type: "jpeg" as const, quality: 0.98 }, // High-quality JPEG for better file size/quality balance
         html2canvas: {
-          scale: 1, // Scale 1 to match exactly what's displayed (this was correct!)
+          scale: 2, // Higher scale for better text rendering and sharper output
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
           letterRendering: true,
           allowTaint: false,
           removeContainer: true,
+          windowWidth: element.scrollWidth, // Use actual content width
+          windowHeight: element.scrollHeight, // Use actual content height
+          scrollX: 0,
+          scrollY: 0,
+          // Additional options for better text rendering
+          dpi: 300, // Higher DPI for better quality
+          foreignObjectRendering: false, // Better text rendering
         },
         jsPDF: {
           unit: "px" as const,
           format: [previewWidth + 96, 1400] as [number, number],
           orientation: "portrait" as const,
-          compress: false,
+          compress: true, // Enable compression for better file size
+          precision: 2, // Higher precision for better quality
         },
         pagebreak: {
           mode: ["avoid-all", "css", "legacy"],

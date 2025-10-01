@@ -415,6 +415,13 @@
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   color-adjust: exact;
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Prevent text from being blurry */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Markdown body overrides */
