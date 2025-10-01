@@ -25,7 +25,7 @@ marked.setOptions({
 
 const defaultMarkdown = `# Markdown to PDF
 
-### We've converted 1,924,501 Markdown files to PDF and counting!
+### Hello from MD2PDF!
 
 To convert your Markdown to PDF simply start by typing in the editor or pasting from your clipboard.
 

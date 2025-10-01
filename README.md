@@ -30,10 +30,8 @@
 ## 🎬 Demo
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Add+Your+Screenshot+Here" alt="MD2PDF Demo Screenshot" width="100%">
+  <img src="public/screenshot/image.png" alt="MD2PDF Demo Screenshot" width="100%">
 </div>
-
-> **Tip:** Replace the placeholder image above with an actual screenshot of your application!
 
 ## 🚀 Quick Start
 
