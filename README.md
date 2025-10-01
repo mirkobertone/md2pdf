@@ -11,6 +11,8 @@
   
   [Live Demo](https://your-demo-url.netlify.app) · [Report Bug](https://github.com/mirkobertone/md2pdf/issues) · [Request Feature](https://github.com/mirkobertone/md2pdf/issues)
   
+  <a href='https://ko-fi.com/M4M21F2IMQ' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+  
 </div>
 
 ---
@@ -219,4 +221,8 @@ Have questions or feedback? Feel free to:
   Made with ❤️ by <a href="https://github.com/mirkobertone">Your Name</a>
   
   If you found this project helpful, please consider giving it a ⭐️!
+  
+  <br>
+  
+  <a href='https://ko-fi.com/M4M21F2IMQ' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 </div>

@@ -297,6 +297,23 @@ function App() {
               className="logo-icon-img"
             />
             <span className="logo-text">Markdown to PDF</span>
+            <a
+              href="https://ko-fi.com/M4M21F2IMQ"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                marginLeft: "20px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <img
+                height="36"
+                style={{ border: 0, height: "36px" }}
+                src="https://storage.ko-fi.com/cdn/kofi5.png?v=6"
+                alt="Buy Me a Coffee at ko-fi.com"
+              />
+            </a>
           </div>
           <div className="header-actions">
             <button
