@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import html2pdf from "html2pdf.js";
 import "github-markdown-css/github-markdown.css";
 import "highlight.js/styles/github.css";
 import "./App.css";
@@ -144,52 +143,45 @@ function App() {
 
     setIsGenerating(true);
     try {
-      // Capture the preview as canvas to get exact visual representation
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 2, // Higher quality
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
+      // Configure html2pdf with optimal settings for page breaks
+      const opt = {
+        margin: [15, 15, 15, 15] as [number, number, number, number], // [top, left, bottom, right] in mm
+        filename: "markdown-to-pdf.pdf",
+        image: { type: "jpeg" as const, quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit: "mm" as const,
+          format: "a4" as const,
+          orientation: "portrait" as const,
+          compress: true,
+        },
+        pagebreak: {
+          mode: ["avoid-all", "css", "legacy"],
+          before: ".page-break-before",
+          after: ".page-break-after",
+          avoid: [
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "pre",
+            "blockquote",
+            "table",
+            "tr",
+            "img",
+          ],
+        },
+      };
 
-      const imgData = canvas.toDataURL("image/png");
-
-      // A4 dimensions in mm
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Calculate dimensions to fit width with margins
-      const margin = 10;
-      const imgWidth = pageWidth - 2 * margin;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Calculate how many pages we need
-      const pageContentHeight = pageHeight - 2 * margin;
-      let heightLeft = imgHeight;
-      let position = margin;
-      let page = 0;
-
-      // Add first page
-      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-      heightLeft -= pageContentHeight;
-
-      // Add subsequent pages if needed
-      while (heightLeft > 0) {
-        position = -(pageContentHeight * (page + 1)) + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-        heightLeft -= pageContentHeight;
-        page++;
-      }
-
-      pdf.save("markdown-to-pdf.pdf");
+      await html2pdf().set(opt).from(previewRef.current).save();
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
