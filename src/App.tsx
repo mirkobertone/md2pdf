@@ -95,12 +95,21 @@ You can use inline HTML for special formatting:
 **Ready to export?** Click the "Download PDF" button!
 `;
 
+const STORAGE_KEY = "md2pdf-content";
+const LAST_SAVED_KEY = "md2pdf-last-saved";
+
 function App() {
-  const [markdown, setMarkdown] = useState(defaultMarkdown);
+  const [markdown, setMarkdown] = useState(() => {
+    // Load from localStorage on initial mount
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved || defaultMarkdown;
+  });
   const [html, setHtml] = useState("");
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string>("");
 
+  // Convert markdown to HTML
   useEffect(() => {
     const convertMarkdown = async () => {
       const htmlContent = await marked(markdown);
@@ -108,6 +117,26 @@ function App() {
     };
     convertMarkdown();
   }, [markdown]);
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, markdown);
+      const now = new Date().toLocaleTimeString();
+      localStorage.setItem(LAST_SAVED_KEY, now);
+      setLastSaved(now);
+    }, 1000); // Save 1 second after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [markdown]);
+
+  // Load last saved time on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(LAST_SAVED_KEY);
+    if (saved) {
+      setLastSaved(saved);
+    }
+  }, []);
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current) return;
@@ -169,8 +198,15 @@ function App() {
   };
 
   const handleClear = () => {
-    if (confirm("Are you sure you want to clear the editor?")) {
+    if (
+      confirm(
+        "Are you sure you want to clear the editor? This will also clear the auto-saved content."
+      )
+    ) {
       setMarkdown("");
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(LAST_SAVED_KEY);
+      setLastSaved("");
     }
   };
 
@@ -232,6 +268,19 @@ function App() {
         <div className="editor-panel">
           <div className="panel-header">
             <h3>Markdown Editor</h3>
+            {lastSaved && (
+              <span className="auto-save-indicator">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                >
+                  <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                </svg>
+                Auto-saved at {lastSaved}
+              </span>
+            )}
           </div>
           <textarea
             className="editor"
