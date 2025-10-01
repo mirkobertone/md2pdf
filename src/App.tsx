@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { marked } from "marked";
+import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -8,17 +9,17 @@ import "highlight.js/styles/github.css";
 import "./App.css";
 
 // Configure marked with highlight.js
+marked.use(
+  markedHighlight({
+    langPrefix: "hljs language-",
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : "plaintext";
+      return hljs.highlight(code, { language }).value;
+    },
+  })
+);
+
 marked.setOptions({
-  highlight: function (code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(code, { language: lang }).value;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    return hljs.highlightAuto(code).value;
-  },
   breaks: true,
   gfm: true,
 });

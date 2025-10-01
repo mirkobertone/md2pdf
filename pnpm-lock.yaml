@@ -23,6 +23,9 @@ importers:
       marked:
         specifier: ^16.3.0
         version: 16.3.0
+      marked-highlight:
+        specifier: ^2.2.2
+        version: 2.2.2(marked@16.3.0)
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -955,6 +958,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  marked-highlight@2.2.2:
+    resolution: {integrity: sha512-KlHOP31DatbtPPXPaI8nx1KTrG3EW0Z5zewCwpUj65swbtKOTStteK3sNAjBqV75Pgo3fNEVNHeptg18mDuWgw==}
+    peerDependencies:
+      marked: '>=4 <17'
 
   marked@16.3.0:
     resolution: {integrity: sha512-K3UxuKu6l6bmA5FUwYho8CfJBlsUWAooKtdGgMcERSpF7gcBUrCGsLH7wDaaNOzwq18JzSUDyoEb/YsrqMac3w==}
@@ -2085,6 +2093,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  marked-highlight@2.2.2(marked@16.3.0):
+    dependencies:
+      marked: 16.3.0
 
   marked@16.3.0: {}
 
