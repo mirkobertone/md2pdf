@@ -108,6 +108,7 @@ function App() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>("");
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Convert markdown to HTML
   useEffect(() => {
@@ -198,16 +199,19 @@ function App() {
   };
 
   const handleClear = () => {
-    if (
-      confirm(
-        "Are you sure you want to clear the editor? This will also clear the auto-saved content."
-      )
-    ) {
-      setMarkdown("");
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(LAST_SAVED_KEY);
-      setLastSaved("");
-    }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClear = () => {
+    setMarkdown("");
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LAST_SAVED_KEY);
+    setLastSaved("");
+    setShowClearConfirm(false);
+  };
+
+  const cancelClear = () => {
+    setShowClearConfirm(false);
   };
 
   return (
@@ -222,6 +226,53 @@ function App() {
         </div>
       )}
 
+      {showClearConfirm && (
+        <div className="modal-overlay" onClick={cancelClear}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon-wrapper">
+              <div className="modal-icon">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                >
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h2>Clear Editor?</h2>
+            <p>
+              Are you sure you want to clear all content? This will delete your
+              current document and remove the auto-saved version.
+            </p>
+            <div className="modal-warning">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+              </svg>
+              This action cannot be undone
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-cancel" onClick={cancelClear}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmClear}>
+                Clear All Content
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="header">
         <div className="header-content">
           <div className="logo">
@@ -230,7 +281,7 @@ function App() {
           </div>
           <div className="header-actions">
             <button
-              className="btn btn-secondary"
+              className="btn btn-clear"
               onClick={handleClear}
               title="Clear editor"
             >
@@ -240,9 +291,13 @@ function App() {
                 viewBox="0 0 16 16"
                 fill="currentColor"
               >
-                <path d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z" />
-                <path d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z" />
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                <path
+                  fillRule="evenodd"
+                  d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
+                />
               </svg>
+              Clear
             </button>
             <button
               className="btn btn-primary"
