@@ -114,54 +114,49 @@ function App() {
 
     setIsGenerating(true);
     try {
+      // Capture the preview as canvas to get exact visual representation
       const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
+        scale: 2, // Higher quality
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
       });
 
       const imgData = canvas.toDataURL("image/png");
+
+      // A4 dimensions in mm
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Handle multiple pages
-      let heightLeft = imgHeight * ratio;
-      let position = 0;
+      // Calculate dimensions to fit width with margins
+      const margin = 10;
+      const imgWidth = pageWidth - 2 * margin;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(
-        imgData,
-        "PNG",
-        imgX,
-        imgY,
-        imgWidth * ratio,
-        imgHeight * ratio
-      );
-      heightLeft -= pdfHeight;
+      // Calculate how many pages we need
+      const pageContentHeight = pageHeight - 2 * margin;
+      let heightLeft = imgHeight;
+      let position = margin;
+      let page = 0;
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight * ratio;
+      // Add first page
+      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageContentHeight;
+
+      // Add subsequent pages if needed
+      while (heightLeft > 0) {
+        position = -(pageContentHeight * (page + 1)) + margin;
         pdf.addPage();
-        pdf.addImage(
-          imgData,
-          "PNG",
-          imgX,
-          position,
-          imgWidth * ratio,
-          imgHeight * ratio
-        );
-        heightLeft -= pdfHeight;
+        pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        heightLeft -= pageContentHeight;
+        page++;
       }
 
       pdf.save("markdown-to-pdf.pdf");
@@ -181,6 +176,16 @@ function App() {
 
   return (
     <div className="app">
+      {isGenerating && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Generating PDF...</p>
+            <small>This may take a moment for large documents</small>
+          </div>
+        </div>
+      )}
+
       <header className="header">
         <div className="header-content">
           <div className="logo">
