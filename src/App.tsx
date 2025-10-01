@@ -276,7 +276,11 @@ function App() {
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <div className="logo-icon">M</div>
+            <img
+              src="/logo.png"
+              alt="MD to PDF Logo"
+              className="logo-icon-img"
+            />
             <span className="logo-text">Markdown to PDF</span>
           </div>
           <div className="header-actions">
