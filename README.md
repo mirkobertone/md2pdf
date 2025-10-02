@@ -212,13 +212,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Have questions or feedback? Feel free to:
 
 - Open an issue on GitHub
-- Reach out via email: your.email@example.com
-- Connect on [Twitter](https://twitter.com/mirkobertone)
+- Reach out via email: bertonemirko@gmail.com
 
 ---
 
 <div align="center">
-  Made with ❤️ by <a href="https://github.com/mirkobertone">Your Name</a>
+  Made with ❤️ by <a href="https://github.com/mirkobertone">mirkobertone</a>
   
   If you found this project helpful, please consider giving it a ⭐️!
   
