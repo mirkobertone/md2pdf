@@ -245,6 +245,10 @@
   width: 40px;
   height: 40px;
   object-fit: contain;
+  border-radius: 50%;
+  background: white;
+  padding: 4px;
+  box-sizing: border-box;
 }
 
 .logo-text {
