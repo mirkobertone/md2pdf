@@ -2,26 +2,67 @@ import { useState, useEffect, useRef } from "react";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
+import mermaid from "mermaid";
 import html2pdf from "html2pdf.js";
 import "github-markdown-css/github-markdown.css";
 import "highlight.js/styles/github.css";
 import "./App.css";
 
-// Configure marked with highlight.js
+// Initialize mermaid
+mermaid.initialize({
+  startOnLoad: false,
+  theme: "default",
+  securityLevel: "loose",
+  fontFamily: "inherit",
+});
+
+// Configure marked with highlight.js (skip mermaid blocks)
 marked.use(
   markedHighlight({
     langPrefix: "hljs language-",
     highlight(code, lang) {
+      if (lang === "mermaid") return code;
       const language = hljs.getLanguage(lang) ? lang : "plaintext";
       return hljs.highlight(code, { language }).value;
     },
-  })
+  }),
+  {
+    renderer: {
+      code({ text, lang }) {
+        if (lang === "mermaid") {
+          return `<div class="mermaid">${text}</div>\n`;
+        }
+        return false as unknown as string;
+      },
+    },
+  }
 );
 
 marked.setOptions({
   breaks: true,
   gfm: true,
 });
+
+let mermaidCounter = 0;
+
+async function renderMermaidInHtml(html: string): Promise<string> {
+  const mermaidRegex = /<div class="mermaid">([\s\S]*?)<\/div>/g;
+  const matches = [...html.matchAll(mermaidRegex)];
+  if (matches.length === 0) return html;
+
+  let result = html;
+  for (const match of matches) {
+    const code = match[1].trim();
+    try {
+      const id = `mermaid-svg-${Date.now()}-${mermaidCounter++}`;
+      const { svg } = await mermaid.render(id, code);
+      result = result.replace(match[0], `<div class="mermaid">${svg}</div>`);
+    } catch (e) {
+      console.warn("Mermaid render error:", e);
+    }
+  }
+  return result;
+}
 
 const defaultMarkdown = `# Markdown to PDF
 
@@ -41,6 +82,7 @@ We now use GitHub flavoured styling by default.
 
 - **Real-time preview**: See your PDF as you type
 - **Code highlighting**: Syntax highlighting for code blocks
+- **Mermaid diagrams**: Flowcharts, sequence diagrams, and more
 - **GitHub styling**: Beautiful GitHub-flavored markdown
 - **Download PDF**: Export your document as PDF
 
@@ -51,6 +93,16 @@ function convertToPDF() {
   console.log("Converting markdown to PDF!");
   return "success";
 }
+\`\`\`
+
+## Mermaid Diagram
+
+\`\`\`mermaid
+flowchart LR
+    A[Markdown] --> B[HTML]
+    B --> C{Preview}
+    C --> D[PDF]
+    C --> E[Screen]
 \`\`\`
 
 ## Math Support (inline HTML)
@@ -109,11 +161,12 @@ function App() {
   const [lastSaved, setLastSaved] = useState<string>("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Convert markdown to HTML
+  // Convert markdown to HTML and pre-render mermaid diagrams to SVG
   useEffect(() => {
     const convertMarkdown = async () => {
       const htmlContent = await marked(markdown);
-      setHtml(htmlContent);
+      const withMermaid = await renderMermaidInHtml(htmlContent);
+      setHtml(withMermaid);
     };
     convertMarkdown();
   }, [markdown]);
@@ -200,6 +253,7 @@ function App() {
             "ol",
             "li",
             ".hljs",
+            ".mermaid",
           ],
         },
       };

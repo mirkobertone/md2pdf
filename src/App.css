@@ -639,6 +639,23 @@
   background: #afb8c1;
 }
 
+/* Mermaid diagrams */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  padding: 16px;
+  background: #f6f8fa;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+  overflow-x: auto;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
