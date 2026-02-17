@@ -22,6 +22,7 @@
 - 🎨 **Real-time Preview** - See your formatted document as you type
 - 📝 **GitHub-Flavored Markdown** - Full GFM support with beautiful styling
 - 🎯 **Syntax Highlighting** - Code blocks with automatic language detection
+- 📊 **Mermaid Diagrams** - Flowcharts, sequence diagrams, class diagrams, and more
 - 📄 **High-Quality PDF Export** - Crystal-clear text and sharp rendering (300 DPI)
 - 💾 **Auto-Save** - Your work is automatically saved to browser storage
 - 🎭 **Clean UI** - Modern, intuitive interface inspired by GitHub
@@ -95,6 +96,7 @@ npm run preview
 - **Build Tool:** Vite
 - **Markdown Parser:** [Marked](https://marked.js.org/)
 - **Syntax Highlighting:** [Highlight.js](https://highlightjs.org/)
+- **Diagrams:** [Mermaid](https://mermaid.js.org/)
 - **PDF Generation:** [html2pdf.js](https://github.com/eKoopmans/html2pdf.js)
 - **Styling:** GitHub Markdown CSS + Custom CSS
 - **Code Quality:** ESLint + TypeScript
@@ -122,6 +124,7 @@ MD2PDF supports all GitHub-Flavored Markdown features:
 - ✅ Links and images
 - ✅ Task lists
 - ✅ HTML elements
+- ✅ Mermaid diagrams (flowchart, sequence, class, state, Gantt, pie, ER, and more)
 
 ### Example Markdown
 
@@ -141,6 +144,16 @@ function convertToPDF() {
   console.log("Converting markdown to PDF!");
   return "success";
 }
+```
+
+## Mermaid Diagram
+
+```mermaid
+flowchart LR
+    A[Markdown] --> B[HTML]
+    B --> C{Preview}
+    C --> D[PDF]
+    C --> E[Screen]
 ```
 
 ## Table
@@ -203,6 +216,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Marked.js](https://marked.js.org/) - Markdown parser
 - [Highlight.js](https://highlightjs.org/) - Syntax highlighting
+- [Mermaid](https://mermaid.js.org/) - Diagrams and charts
 - [html2pdf.js](https://github.com/eKoopmans/html2pdf.js) - PDF generation
 - [GitHub Primer CSS](https://primer.style/) - Design inspiration
 - [React](https://react.dev/) - UI framework
