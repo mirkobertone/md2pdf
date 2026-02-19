@@ -146,20 +146,76 @@ You can use inline HTML for special formatting:
 **Ready to export?** Click the "Download PDF" button!
 `;
 
-const STORAGE_KEY = "md2pdf-content";
-const LAST_SAVED_KEY = "md2pdf-last-saved";
+// Data model
+interface MdFile {
+  id: string;
+  name: string;
+  content: string;
+  lastSaved: string;
+}
+
+// Storage keys
+const FILES_KEY = "md2pdf-files";
+const ACTIVE_FILE_KEY = "md2pdf-active-file";
+const LEGACY_CONTENT_KEY = "md2pdf-content";
+const LEGACY_SAVED_KEY = "md2pdf-last-saved";
+
+// Storage helpers
+function createNewFile(name: string, content: string): MdFile {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    content,
+    lastSaved: "",
+  };
+}
+
+function loadFilesFromStorage(): MdFile[] {
+  const raw = localStorage.getItem(FILES_KEY);
+  if (raw) {
+    try {
+      return JSON.parse(raw) as MdFile[];
+    } catch {
+      // fall through to migration
+    }
+  }
+  // Migration: read legacy content
+  const legacyContent = localStorage.getItem(LEGACY_CONTENT_KEY);
+  const file = createNewFile("My Document", legacyContent ?? defaultMarkdown);
+  localStorage.removeItem(LEGACY_CONTENT_KEY);
+  localStorage.removeItem(LEGACY_SAVED_KEY);
+  const files = [file];
+  localStorage.setItem(FILES_KEY, JSON.stringify(files));
+  return files;
+}
+
+function loadActiveFileId(): string {
+  return localStorage.getItem(ACTIVE_FILE_KEY) ?? "";
+}
+
+function persistFiles(files: MdFile[]): void {
+  localStorage.setItem(FILES_KEY, JSON.stringify(files));
+}
 
 function App() {
-  const [markdown, setMarkdown] = useState(() => {
-    // Load from localStorage on initial mount
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved || defaultMarkdown;
+  const [files, setFiles] = useState<MdFile[]>(() => loadFilesFromStorage());
+  const [activeFileId, setActiveFileId] = useState<string>(() => {
+    const stored = loadActiveFileId();
+    const loaded = loadFilesFromStorage();
+    if (stored && loaded.find((f) => f.id === stored)) return stored;
+    return loaded[0]?.id ?? "";
   });
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState<string>("");
   const [html, setHtml] = useState("");
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string>("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Derived
+  const activeFile = files.find((f) => f.id === activeFileId) ?? files[0];
+  const markdown = activeFile?.content ?? "";
+  const lastSaved = activeFile?.lastSaved ?? "";
 
   // Convert markdown to HTML and pre-render mermaid diagrams to SVG
   useEffect(() => {
@@ -173,62 +229,132 @@ function App() {
 
   // Auto-save to localStorage
   useEffect(() => {
+    if (!activeFile) return;
     const timer = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, markdown);
       const now = new Date().toLocaleTimeString();
-      localStorage.setItem(LAST_SAVED_KEY, now);
-      setLastSaved(now);
-    }, 1000); // Save 1 second after user stops typing
-
+      setFiles((prev) => {
+        const updated = prev.map((f) =>
+          f.id === activeFile.id ? { ...f, lastSaved: now } : f
+        );
+        persistFiles(updated);
+        return updated;
+      });
+    }, 1000);
     return () => clearTimeout(timer);
-  }, [markdown]);
+  }, [markdown, activeFileId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load last saved time on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(LAST_SAVED_KEY);
-    if (saved) {
-      setLastSaved(saved);
+  // File handlers
+  const createFile = () => {
+    const existingUntitled = files.filter(
+      (f) => f.name === "Untitled" || f.name.match(/^Untitled \d+$/)
+    );
+    let name = "Untitled";
+    if (existingUntitled.length > 0) {
+      name = `Untitled ${existingUntitled.length + 1}`;
     }
-  }, []);
+    const file = createNewFile(name, "");
+    const updated = [...files, file];
+    setFiles(updated);
+    persistFiles(updated);
+    setActiveFileId(file.id);
+    localStorage.setItem(ACTIVE_FILE_KEY, file.id);
+  };
+
+  const selectFile = (id: string) => {
+    if (renamingId) {
+      commitRename(renamingId, renameValue);
+    }
+    setActiveFileId(id);
+    localStorage.setItem(ACTIVE_FILE_KEY, id);
+  };
+
+  const updateContent = (content: string) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === activeFile?.id ? { ...f, content } : f))
+    );
+  };
+
+  const deleteFile = (id: string) => {
+    if (files.length === 1) {
+      // Clear content instead of deleting last file
+      setFiles((prev) => {
+        const updated = prev.map((f) =>
+          f.id === id ? { ...f, content: "", lastSaved: "" } : f
+        );
+        persistFiles(updated);
+        return updated;
+      });
+      return;
+    }
+    const idx = files.findIndex((f) => f.id === id);
+    const updated = files.filter((f) => f.id !== id);
+    persistFiles(updated);
+    setFiles(updated);
+    if (activeFileId === id) {
+      const sibling = updated[Math.max(0, idx - 1)];
+      setActiveFileId(sibling.id);
+      localStorage.setItem(ACTIVE_FILE_KEY, sibling.id);
+    }
+  };
+
+  const startRename = (id: string, name: string) => {
+    setRenamingId(id);
+    setRenameValue(name);
+  };
+
+  const commitRename = (id: string, name: string) => {
+    const trimmed = name.trim();
+    const original = files.find((f) => f.id === id)?.name ?? "";
+    const finalName = trimmed || original;
+    setFiles((prev) => {
+      const updated = prev.map((f) =>
+        f.id === id ? { ...f, name: finalName } : f
+      );
+      persistFiles(updated);
+      return updated;
+    });
+    setRenamingId(null);
+    setRenameValue("");
+  };
+
+  const cancelRename = () => {
+    setRenamingId(null);
+    setRenameValue("");
+  };
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current) return;
 
     setIsGenerating(true);
     try {
-      // Clone the preview element to avoid modifying the original
       const element = previewRef.current;
-
-      // Get the actual rendered width of the preview element
       const previewWidth = element.offsetWidth;
 
-      // Configure html2pdf with optimal settings for high-quality rendering
       const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number], // [top, left, bottom, right] in mm
+        margin: [15, 15, 15, 15] as [number, number, number, number],
         filename: "markdown-to-pdf.pdf",
-        image: { type: "jpeg" as const, quality: 0.98 }, // High-quality JPEG for better file size/quality balance
+        image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: {
-          scale: 2, // Higher scale for better text rendering and sharper output
+          scale: 2,
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
           letterRendering: true,
           allowTaint: false,
           removeContainer: true,
-          windowWidth: element.scrollWidth, // Use actual content width
-          windowHeight: element.scrollHeight, // Use actual content height
+          windowWidth: element.scrollWidth,
+          windowHeight: element.scrollHeight,
           scrollX: 0,
           scrollY: 0,
-          // Additional options for better text rendering
-          dpi: 300, // Higher DPI for better quality
-          foreignObjectRendering: false, // Better text rendering
+          dpi: 300,
+          foreignObjectRendering: false,
         },
         jsPDF: {
           unit: "px" as const,
           format: [previewWidth + 96, 1400] as [number, number],
           orientation: "portrait" as const,
-          compress: true, // Enable compression for better file size
-          precision: 2, // Higher precision for better quality
+          compress: true,
+          precision: 2,
         },
         pagebreak: {
           mode: ["avoid-all", "css", "legacy"],
@@ -272,10 +398,13 @@ function App() {
   };
 
   const confirmClear = () => {
-    setMarkdown("");
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(LAST_SAVED_KEY);
-    setLastSaved("");
+    setFiles((prev) => {
+      const updated = prev.map((f) =>
+        f.id === activeFile?.id ? { ...f, content: "", lastSaved: "" } : f
+      );
+      persistFiles(updated);
+      return updated;
+    });
     setShowClearConfirm(false);
   };
 
@@ -316,8 +445,8 @@ function App() {
             </div>
             <h2>Clear Editor?</h2>
             <p>
-              Are you sure you want to clear all content? This will delete your
-              current document and remove the auto-saved version.
+              Are you sure you want to clear all content? This will clear the
+              content of this file. The file will remain in your file list.
             </p>
             <div className="modal-warning">
               <svg
@@ -431,6 +560,82 @@ function App() {
       </header>
 
       <div className="container">
+        <div className="sidebar">
+          <div className="sidebar-header">
+            <span className="sidebar-title">Files</span>
+            <button
+              className="btn-new-file"
+              onClick={createFile}
+              title="New file"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path d="M8 2a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 018 2z" />
+              </svg>
+            </button>
+          </div>
+          <ul className="file-list">
+            {files.map((file) => (
+              <li
+                key={file.id}
+                className={`file-item${file.id === activeFileId ? " file-item--active" : ""}`}
+                onClick={() => selectFile(file.id)}
+                title={file.lastSaved ? `Saved at ${file.lastSaved}` : file.name}
+              >
+                {renamingId === file.id ? (
+                  <input
+                    className="file-rename-input"
+                    value={renameValue}
+                    autoFocus
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={() => commitRename(file.id, renameValue)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitRename(file.id, renameValue);
+                      if (e.key === "Escape") cancelRename();
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <>
+                    <span
+                      className="file-name"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        startRename(file.id, file.name);
+                      }}
+                    >
+                      {file.name}
+                    </span>
+                    <button
+                      className="file-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteFile(file.id);
+                      }}
+                      title="Delete file"
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                      >
+                        <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.749.749 0 011.275.326.749.749 0 01-.215.734L9.06 8l3.22 3.22a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215L8 9.06l-3.22 3.22a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042L6.94 8 3.72 4.78a.75.75 0 010-1.06z" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="divider"></div>
+
         <div className="editor-panel">
           <div className="panel-header">
             <h3>Markdown Editor</h3>
@@ -451,7 +656,7 @@ function App() {
           <textarea
             className="editor"
             value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
+            onChange={(e) => updateContent(e.target.value)}
             placeholder="Type your markdown here..."
             spellCheck={false}
           />
