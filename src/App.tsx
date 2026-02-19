@@ -212,6 +212,7 @@ function App() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_KEY);
     return stored === null ? true : stored === "true";
@@ -495,6 +496,135 @@ function App() {
         </div>
       )}
 
+      {showExportDialog && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowExportDialog(false)}
+        >
+          <div
+            className="modal-content export-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Export Document</h2>
+            <p className="export-dialog-subtitle">
+              Choose a format to download your document
+            </p>
+            <div className="format-cards">
+              <button
+                className="format-card"
+                onClick={async () => {
+                  setShowExportDialog(false);
+                  await handleDownloadPDF();
+                }}
+                disabled={isGenerating}
+              >
+                <div className="format-card-icon format-card-icon--pdf">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <path d="M9 13h2v5H9zM9 17h2v2H9zM13 13h2v7h-2zM17 13h2v4h-2z" />
+                  </svg>
+                </div>
+                <div className="format-card-body">
+                  <span className="format-card-name">PDF</span>
+                  <span className="format-card-desc">
+                    Portable document, ideal for sharing and printing
+                  </span>
+                </div>
+              </button>
+              <button
+                className="format-card format-card--disabled"
+                onClick={() => {}}
+                title="Coming soon"
+              >
+                <div className="format-card-icon format-card-icon--html">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                </div>
+                <div className="format-card-body">
+                  <span className="format-card-name">HTML</span>
+                  <span className="format-card-desc">
+                    Web page with styling preserved
+                  </span>
+                </div>
+                <span className="coming-soon-badge">Coming soon</span>
+              </button>
+              <button
+                className="format-card format-card--disabled"
+                onClick={() => {}}
+                title="Coming soon"
+              >
+                <div className="format-card-icon format-card-icon--docx">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <path d="M8 13h2v7H8zM12 13h2v7h-2zM16 13h2v7h-2z" />
+                  </svg>
+                </div>
+                <div className="format-card-body">
+                  <span className="format-card-name">DOCX</span>
+                  <span className="format-card-desc">
+                    Microsoft Word document format
+                  </span>
+                </div>
+                <span className="coming-soon-badge">Coming soon</span>
+              </button>
+              <button
+                className="format-card format-card--disabled"
+                onClick={() => {}}
+                title="Coming soon"
+              >
+                <div className="format-card-icon format-card-icon--txt">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <line x1="10" y1="9" x2="8" y2="9" />
+                  </svg>
+                </div>
+                <div className="format-card-body">
+                  <span className="format-card-name">Plain Text (.txt)</span>
+                  <span className="format-card-desc">
+                    Unformatted markdown source
+                  </span>
+                </div>
+                <span className="coming-soon-badge">Coming soon</span>
+              </button>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn btn-cancel"
+                onClick={() => setShowExportDialog(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="header">
         <div className="header-content">
           <div className="logo">
@@ -564,27 +694,8 @@ function App() {
           </div>
           <div className="header-actions">
             <button
-              className="btn btn-clear"
-              onClick={handleClear}
-              title="Clear editor"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-              >
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                <path
-                  fillRule="evenodd"
-                  d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
-                />
-              </svg>
-              Clear
-            </button>
-            <button
               className="btn btn-primary"
-              onClick={handleDownloadPDF}
+              onClick={() => setShowExportDialog(true)}
               disabled={isGenerating}
             >
               <svg
@@ -596,7 +707,7 @@ function App() {
                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
               </svg>
-              {isGenerating ? "Generating..." : "Download PDF"}
+              {isGenerating ? "Generating..." : "Download"}
             </button>
           </div>
         </div>
@@ -750,19 +861,39 @@ function App() {
                 </>
               )}
             </div>
-            {lastSaved && (
-              <span className="auto-save-indicator">
+            <div className="panel-header-actions">
+              {lastSaved && (
+                <span className="auto-save-indicator">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
+                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                  </svg>
+                  Auto-saved at {lastSaved}
+                </span>
+              )}
+              <button
+                className="btn-clear-editor"
+                onClick={handleClear}
+                title="Clear editor"
+              >
                 <svg
-                  width="12"
-                  height="12"
+                  width="14"
+                  height="14"
                   viewBox="0 0 16 16"
                   fill="currentColor"
                 >
-                  <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
+                  />
                 </svg>
-                Auto-saved at {lastSaved}
-              </span>
-            )}
+              </button>
+            </div>
           </div>
           <textarea
             className="editor"
@@ -777,7 +908,7 @@ function App() {
 
         <div className="preview-panel">
           <div className="panel-header">
-            <h3>PDF Preview</h3>
+            <h3>Preview</h3>
           </div>
           <div className="preview-wrapper">
             <div
